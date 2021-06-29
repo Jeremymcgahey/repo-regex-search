@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 def main():
     load_dotenv()
     access_token = os.getenv("ACCESS_TOKEN")
-    username = "Jeremymcgahey"
+    username = os.getenv("USER")
     #  this is require for access to private files
     url = f"https://api.github.com/search/repositories?q=user:{username}"
     #  path will be .docker/build/Dockerfile
