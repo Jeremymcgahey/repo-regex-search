@@ -1,3 +1,4 @@
+import sys
 import os
 import requests
 import json
@@ -8,13 +9,13 @@ from dotenv import load_dotenv
 @cli.app.CommandLineApp
 def repo_scan(app):
     verbose = repo_scan.params.verbose
+    path = repo_scan.params.path
+
     load_dotenv()
     access_token = os.getenv("ACCESS_TOKEN")
     username = os.getenv("USER")
-    #  this is require for access to private files
+
     url = f"https://api.github.com/search/repositories?q=user:{username}"
-    #  path will be .docker/build/Dockerfile
-    path = ".docker/build/Dockerfile"
 
     #  grabs a list of all the items in repository
     request = requests.get(url, auth=(username, access_token))
@@ -24,8 +25,6 @@ def repo_scan(app):
         return
     text = request.content
     git = json.loads(text)
-    if verbose:
-        print(git)
     repos = git["items"]
     bad_repos = []
 
@@ -58,10 +57,11 @@ def repo_scan(app):
             bad_repos.append(url)
 
     #  output for bad_repos as json
-    print("The Dockerfiles unsafe are:", json.dumps(bad_repos))
+    sys.stdout.write(json.dumps(bad_repos))
 
 
 repo_scan.add_param("-v", "--verbose", help="enables print statements", default=False, action="store_true")
+repo_scan.add_param("-p", "--path", help="sets the repo path", default=".docker/build/Dockerfile", type=str)
 
 if __name__ == "__main__":
     repo_scan.run()
