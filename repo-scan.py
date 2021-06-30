@@ -1,3 +1,4 @@
+import re
 import sys
 import os
 import requests
@@ -8,8 +9,9 @@ from dotenv import load_dotenv
 
 @cli.app.CommandLineApp
 def repo_scan(app):
-    verbose = repo_scan.params.verbose
-    path = repo_scan.params.path
+    verbose = app.params.verbose
+    path = app.params.path
+    search = app.params.search
 
     load_dotenv()
     access_token = os.getenv("ACCESS_TOKEN")
@@ -39,22 +41,15 @@ def repo_scan(app):
             if verbose:
                 print(f"File not found in: {url}")
             continue
-        text = request.text
-        index = text.find("FROM composer") + 13  # end of FROM composer string + 1
 
-        if text[index:index + 7] == ":latest":
-            if verbose:
-                print("Version :latest")
+        pattern = re.compile(search)
+        match = pattern.search(request.text)
+        if match is None:
             bad_repos.append(url)
-
-        elif text[index:index + 1] == ":":
-            if verbose:
-                print("Good repository")
 
         else:
             if verbose:
-                print("Bad repository")
-            bad_repos.append(url)
+                print("Good repository")
 
     #  output for bad_repos as json
     sys.stdout.write(json.dumps(bad_repos))
@@ -62,6 +57,7 @@ def repo_scan(app):
 
 repo_scan.add_param("-v", "--verbose", help="enables print statements", default=False, action="store_true")
 repo_scan.add_param("-p", "--path", help="sets the repo path", default=".docker/build/Dockerfile", type=str)
+repo_scan.add_param("-s", "--search", help="regex string to search for", default=r"FROM composer\:[0-9\.]+", type=str)
 
 if __name__ == "__main__":
     repo_scan.run()
