@@ -7,11 +7,11 @@ from dotenv import load_dotenv
 def main():
     load_dotenv()
     access_token = os.getenv("ACCESS_TOKEN")
-    username = os.getenv("USER")
+    username = "weareflip"
     #  this is require for access to private files
     url = f"https://api.github.com/search/repositories?q=user:{username}"
     #  path will be .docker/build/Dockerfile
-    path = "Dockerfile"
+    path = ".docker/build/Dockerfile"
 
     #  grabs a list of all the items in repository
     request = requests.get(url, auth=(username, access_token))
@@ -32,7 +32,7 @@ def main():
         request = requests.get(url, auth=(username, access_token))
         if not request.ok:
             print(f"File not found in: {url}")
-            break
+            continue
         text = request.text
         index = text.find("FROM composer") + 13  # end of FROM composer string + 1
 

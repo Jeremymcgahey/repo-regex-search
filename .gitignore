@@ -1,2 +1,5 @@
 # ignore my environment variables
 /.env
+/venv/
+/.env.txt
+/test.py
