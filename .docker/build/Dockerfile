@@ -1,5 +1,5 @@
 # Build backend source
-FROM composer as backend
+FROM composer:10.12.1 as backend
 WORKDIR /app
 COPY composer.json composer.lock /app/
 RUN composer install  \
