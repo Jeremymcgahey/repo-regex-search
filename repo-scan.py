@@ -1,13 +1,16 @@
 import os
 import requests
 import json
+import cli.app
 from dotenv import load_dotenv
 
 
-def main():
+@cli.app.CommandLineApp
+def repo_scan(app):
+    verbose = repo_scan.params.verbose
     load_dotenv()
     access_token = os.getenv("ACCESS_TOKEN")
-    username = "weareflip"
+    username = os.getenv("USER")
     #  this is require for access to private files
     url = f"https://api.github.com/search/repositories?q=user:{username}"
     #  path will be .docker/build/Dockerfile
@@ -16,39 +19,49 @@ def main():
     #  grabs a list of all the items in repository
     request = requests.get(url, auth=(username, access_token))
     if not request.ok:
-        print("Bad Response: Exiting.")
+        if verbose:
+            print("Bad Response: Exiting.")
         return
     text = request.content
     git = json.loads(text)
-    print(git)
+    if verbose:
+        print(git)
     repos = git["items"]
     bad_repos = []
 
     #  using the repository names we grab the data from each and check the dockerfile
     for repo in repos:
         repo_name = repo["name"]
-        print("Repository name:", repo_name)
+        if verbose:
+            print("Repository name:", repo_name)
         url = f"https://raw.githubusercontent.com/{username}/{repo_name}/main/{path}"
         request = requests.get(url, auth=(username, access_token))
         if not request.ok:
-            print(f"File not found in: {url}")
+            if verbose:
+                print(f"File not found in: {url}")
             continue
         text = request.text
         index = text.find("FROM composer") + 13  # end of FROM composer string + 1
 
         if text[index:index + 7] == ":latest":
-            print("Version :latest")
+            if verbose:
+                print("Version :latest")
             bad_repos.append(url)
 
         elif text[index:index + 1] == ":":
-            print("Good repository")
+            if verbose:
+                print("Good repository")
 
         else:
-            print("Bad repository")
+            if verbose:
+                print("Bad repository")
             bad_repos.append(url)
 
     #  output for bad_repos as json
-    print(json.dumps(bad_repos))
+    print("The Dockerfiles unsafe are:", json.dumps(bad_repos))
 
 
-main()
+repo_scan.add_param("-v", "--verbose", help="enables print statements", default=False, action="store_true")
+
+if __name__ == "__main__":
+    repo_scan.run()
