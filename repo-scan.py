@@ -29,6 +29,7 @@ def repo_scan(app):
     git = json.loads(text)
     repos = git["items"]
     bad_repos = []
+    good_repos = []
 
     #  using the repository names we grab the data from each and check the dockerfile
     for repo in repos:
@@ -50,14 +51,19 @@ def repo_scan(app):
         else:
             if verbose:
                 print("Good repository")
+            good_repos.append(url)
 
     #  output for bad_repos as json
-    sys.stdout.write(json.dumps(bad_repos))
+    if app.params.match:
+        sys.stdout.write(json.dumps(good_repos))
+    else:
+        sys.stdout.write(json.dumps(bad_repos))
 
 
 repo_scan.add_param("-v", "--verbose", help="enables print statements", default=False, action="store_true")
 repo_scan.add_param("-p", "--path", help="sets the repo path", default=".docker/build/Dockerfile", type=str)
-repo_scan.add_param("-s", "--search", help="regex string to search for", default=r"FROM composer\:[0-9\.]+", type=str)
+repo_scan.add_param("-s", "--search", help="regex raw string to search for", default=r"FROM composer\:[0-9\.]+", type=str)
+repo_scan.add_param("-m", "--match", help="show matches", default=False, action="store_true")
 
 if __name__ == "__main__":
     repo_scan.run()
