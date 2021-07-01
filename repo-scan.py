@@ -36,7 +36,7 @@ def repo_scan(app):
         repo_name = repo["name"]
         if verbose:
             print("Repository name:", repo_name)
-        url = f"https://raw.githubusercontent.com/{username}/{repo_name}/main/{path}"
+        url = f"https://raw.githubusercontent.com/{username}/{repo_name}/master/{path}"
         request = requests.get(url, auth=(username, access_token))
         if not request.ok:
             if verbose:
