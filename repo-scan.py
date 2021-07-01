@@ -23,7 +23,7 @@ def repo_scan(app):
     request = requests.get(url, auth=(username, access_token))
     if not request.ok:
         if verbose:
-            print("Bad Response: Exiting.")
+            print("Bad Response: ", request.status_code, " received")
         return
     text = request.content
     git = json.loads(text)
