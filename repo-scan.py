@@ -39,6 +39,8 @@ def repo_scan(app):
     remaining = repos[1] // 100 + 1
 
     while 0 < remaining:
+        if verbose:
+            print(f"Pages remaining: {remaining}")
         repos = fetch_repo(page, username, access_token, verbose)[0]
         #  using the repository names we grab the data from each and check the dockerfile
         for repo in repos:
@@ -79,3 +81,4 @@ repo_scan.add_param("-gc", "--good_case", help="enables good cases", default=Fal
 
 if __name__ == "__main__":
     repo_scan.run()
+
