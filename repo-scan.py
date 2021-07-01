@@ -46,6 +46,8 @@ def repo_scan(app):
         pattern = re.compile(search)
         match = pattern.search(request.text)
         if match is None:
+            if verbose:
+                print("Bad repository")
             bad_repos.append(url)
 
         else:
@@ -53,8 +55,8 @@ def repo_scan(app):
                 print("Good repository")
             good_repos.append(url)
 
-    #  output for bad_repos as json
-    if app.params.match:
+    #  output repos as json
+    if app.params.good_case:
         sys.stdout.write(json.dumps(good_repos))
     else:
         sys.stdout.write(json.dumps(bad_repos))
@@ -62,8 +64,8 @@ def repo_scan(app):
 
 repo_scan.add_param("-v", "--verbose", help="enables print statements", default=False, action="store_true")
 repo_scan.add_param("-p", "--path", help="sets the repo path", default=".docker/build/Dockerfile", type=str)
-repo_scan.add_param("-s", "--search", help="regex raw string to search for", default=r"FROM composer\:[0-9\.]+", type=str)
-repo_scan.add_param("-m", "--match", help="show matches", default=False, action="store_true")
+repo_scan.add_param("-s", "--search", help="regex raw string to search", default=r"FROM composer\:[0-9\.]+", type=str)
+repo_scan.add_param("-gc", "--good_case", help="enables good cases", default=False, action="store_true")
 
 if __name__ == "__main__":
     repo_scan.run()
