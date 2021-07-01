@@ -17,10 +17,8 @@ def fetch_repo(page, username, access_token, verbose):
             print("Bad Response: ", request.status_code, " received")
         return
     text = request.content
-    print(text)
     git = json.loads(text)
-    print(type(git["items"]))
-    return git["items"]
+    return git["items"], git["total_count"]
 
 
 @cli.app.CommandLineApp
@@ -32,36 +30,40 @@ def repo_scan(app):
     load_dotenv()
     access_token = os.getenv("ACCESS_TOKEN")
     username = os.getenv("GIT_USERNAME")
+
     page = 1
-
-    repos = fetch_repo(page, username, access_token, verbose)
-
     bad_repos = []
     good_repos = []
 
-    #  using the repository names we grab the data from each and check the dockerfile
-    for repo in repos:
-        repo_name = repo["name"]
-        if verbose:
-            print("Repository name:", repo_name)
-        url = f"https://raw.githubusercontent.com/{username}/{repo_name}/master/{path}"
-        request = requests.get(url, auth=(username, access_token))
-        if not request.ok:
-            if verbose:
-                print(f"File not found in: {url}")
-            continue
+    repos = fetch_repo(page, username, access_token, verbose)
+    remaining = repos[1] // 100 + 1
 
-        pattern = re.compile(search)
-        match = pattern.search(request.text)
-        if match is None:
+    while 0 < remaining:
+        repos = fetch_repo(page, username, access_token, verbose)[0]
+        #  using the repository names we grab the data from each and check the dockerfile
+        for repo in repos:
+            repo_name = repo["name"]
             if verbose:
-                print("Bad repository")
-            bad_repos.append(url)
+                print("Repository name:", repo_name)
+            url = f"https://raw.githubusercontent.com/{username}/{repo_name}/master/{path}"
+            request = requests.get(url, auth=(username, access_token))
+            if not request.ok:
+                if verbose:
+                    print(f"File not found in: {url}")
+                continue
 
-        else:
-            if verbose:
-                print("Good repository")
-            good_repos.append(url)
+            pattern = re.compile(search)
+            match = pattern.search(request.text)
+            if match is None:
+                if verbose:
+                    print("Bad repository")
+                bad_repos.append(url)
+
+            else:
+                if verbose:
+                    print("Good repository")
+                good_repos.append(url)
+        remaining -= 1
 
     #  output repos as json
     if app.params.good_case:
