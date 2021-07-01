@@ -27,8 +27,12 @@ def repo_scan(app):
     path = app.params.path
     search = app.params.search
 
+    def debug(*args):
+        if verbose:
+            print(args)
+
     load_dotenv()
-    access_token = os.getenv("ACCESS_TOKEN")
+    access_token = os.getenv("GIT_ACCESS_TOKEN")
     username = os.getenv("GIT_USERNAME")
 
     page = 1
@@ -39,32 +43,30 @@ def repo_scan(app):
     remaining = repos[1] // 100 + 1
 
     while 0 < remaining:
-        if verbose:
-            print(f"Pages remaining: {remaining}")
+        debug(f"Pages remaining: {remaining}")
+
         repos = fetch_repo(page, username, access_token, verbose)[0]
         #  using the repository names we grab the data from each and check the dockerfile
         for repo in repos:
             repo_name = repo["name"]
-            if verbose:
-                print("Repository name:", repo_name)
+            debug("Repository name:", repo_name)
+
             url = f"https://raw.githubusercontent.com/{username}/{repo_name}/master/{path}"
             request = requests.get(url, auth=(username, access_token))
             if not request.ok:
-                if verbose:
-                    print(f"File not found in: {url}")
+                debug(f"File not found in: {url}")
                 continue
 
             pattern = re.compile(search)
             match = pattern.search(request.text)
             if match is None:
-                if verbose:
-                    print("Bad repository")
+                debug("Bad repository")
                 bad_repos.append(url)
 
             else:
-                if verbose:
-                    print("Good repository")
+                debug("Good repository")
                 good_repos.append(url)
+
         remaining -= 1
 
     #  output repos as json
@@ -75,9 +77,9 @@ def repo_scan(app):
 
 
 repo_scan.add_param("-v", "--verbose", help="enables print statements", default=False, action="store_true")
-repo_scan.add_param("-p", "--path", help="sets the repo path", default=".docker/build/Dockerfile", type=str)
-repo_scan.add_param("-s", "--search", help="regex raw string to search", default=r"FROM composer\:[0-9\.]+", type=str)
-repo_scan.add_param("-gc", "--good_case", help="enables good cases", default=False, action="store_true")
+repo_scan.add_param("-p", "--path", help="sets the file path to scan", default=".docker/build/Dockerfile", type=str)
+repo_scan.add_param("-s", "--search", help="regex string to match", default=r"FROM composer\:[0-9\.]+", type=str)
+repo_scan.add_param("-gc", "--good_case", help="show matched repos", default=False, action="store_true")
 
 if __name__ == "__main__":
     repo_scan.run()
