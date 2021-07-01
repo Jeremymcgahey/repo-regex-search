@@ -15,7 +15,7 @@ def repo_scan(app):
 
     load_dotenv()
     access_token = os.getenv("ACCESS_TOKEN")
-    username = os.getenv("USER")
+    username = os.getenv("GIT_USERNAME")
 
     url = f"https://api.github.com/search/repositories?q=user:{username}"
 
