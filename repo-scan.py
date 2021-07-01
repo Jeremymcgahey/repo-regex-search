@@ -7,6 +7,22 @@ import cli.app
 from dotenv import load_dotenv
 
 
+def fetch_repo(page, username, access_token, verbose):
+    url = f"https://api.github.com/search/repositories?q=user:{username}&per_page=100&page={page}"
+
+    #  grabs a list of all the items in repository
+    request = requests.get(url, auth=(username, access_token))
+    if not request.ok:
+        if verbose:
+            print("Bad Response: ", request.status_code, " received")
+        return
+    text = request.content
+    print(text)
+    git = json.loads(text)
+    print(type(git["items"]))
+    return git["items"]
+
+
 @cli.app.CommandLineApp
 def repo_scan(app):
     verbose = app.params.verbose
@@ -16,18 +32,10 @@ def repo_scan(app):
     load_dotenv()
     access_token = os.getenv("ACCESS_TOKEN")
     username = os.getenv("GIT_USERNAME")
+    page = 1
 
-    url = f"https://api.github.com/search/repositories?q=user:{username}"
+    repos = fetch_repo(page, username, access_token, verbose)
 
-    #  grabs a list of all the items in repository
-    request = requests.get(url, auth=(username, access_token))
-    if not request.ok:
-        if verbose:
-            print("Bad Response: ", request.status_code, " received")
-        return
-    text = request.content
-    git = json.loads(text)
-    repos = git["items"]
     bad_repos = []
     good_repos = []
 
