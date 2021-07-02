@@ -48,7 +48,7 @@ def repo_scan(app):
         debug(f"Pages remaining: {remaining}")
 
         repos = fetch_repo(page, username, access_token, verbose)[0]
-        #  using the repository names we grab the data from each and check the dockerfile
+        #  using the repo names we grab the data from each and check against regex
         for repo in repos:
             repo_name = repo["name"]
             debug("Repository name:", repo_name)
@@ -79,6 +79,7 @@ def repo_scan(app):
         sys.stdout.write(json.dumps(bad_repos))
 
 
+#  defining all of the cli parameters
 repo_scan.add_param("-v", "--verbose", help="enables print statements", default=False, action="store_true")
 repo_scan.add_param("-gc", "--good_case", help="show matched repos", default=False, action="store_true")
 repo_scan.add_param("-p", "--path", help="sets the file path to scan", default=".docker/build/Dockerfile", type=str)
@@ -87,4 +88,3 @@ repo_scan.add_param("-b", "--branch", help="set the repository branch", default=
 
 if __name__ == "__main__":
     repo_scan.run()
-
