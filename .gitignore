@@ -1,5 +1,5 @@
 /.env
-/venv/
-/.env.txt
+/venv
 /test.py
 /.idea
+/.docker
