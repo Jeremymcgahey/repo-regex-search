@@ -41,6 +41,7 @@ def repo_scan(app):
 
     repos = fetch_repo(page, username, access_token, verbose)
     remaining = repos[1] // 100 + 1
+    debug(f"Total items: {repos[1]}")
 
     while 0 < remaining:
         debug(f"Pages remaining: {remaining}")
@@ -68,6 +69,7 @@ def repo_scan(app):
                 good_repos.append(url)
 
         remaining -= 1
+        page += 1
 
     #  output repos as json
     if app.params.good_case:
