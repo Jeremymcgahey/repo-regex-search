@@ -26,6 +26,7 @@ def repo_scan(app):
     verbose = app.params.verbose
     path = app.params.path
     search = app.params.search
+    branch = app.params.branch
 
     def debug(*args):
         if verbose:
@@ -52,7 +53,7 @@ def repo_scan(app):
             repo_name = repo["name"]
             debug("Repository name:", repo_name)
 
-            url = f"https://raw.githubusercontent.com/{username}/{repo_name}/master/{path}"
+            url = f"https://raw.githubusercontent.com/{username}/{repo_name}/{branch}/{path}"
             request = requests.get(url, auth=(username, access_token))
             if not request.ok:
                 debug(f"File not found in: {url}")
@@ -79,9 +80,10 @@ def repo_scan(app):
 
 
 repo_scan.add_param("-v", "--verbose", help="enables print statements", default=False, action="store_true")
+repo_scan.add_param("-gc", "--good_case", help="show matched repos", default=False, action="store_true")
 repo_scan.add_param("-p", "--path", help="sets the file path to scan", default=".docker/build/Dockerfile", type=str)
 repo_scan.add_param("-s", "--search", help="regex string to match", default=r"FROM composer\:[0-9\.]+", type=str)
-repo_scan.add_param("-gc", "--good_case", help="show matched repos", default=False, action="store_true")
+repo_scan.add_param("-b", "--branch", help="set the repository branch", default="master", type=str)
 
 if __name__ == "__main__":
     repo_scan.run()
