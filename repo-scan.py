@@ -27,6 +27,7 @@ def repo_scan(app):
     path = app.params.path
     search = app.params.search
     branch = app.params.branch
+    raw = app.params.raw-api
 
     def debug(*args):
         if verbose:
@@ -60,9 +61,13 @@ def repo_scan(app):
             if not request.ok:
                 debug(f"File not found in: {url}")
                 continue
-
             pattern = re.compile(search)
             match = pattern.search(request.text)
+
+            #  convert the url before appending
+            if not raw:
+                url = f"https://github.com/{username}/{repo_name}/{branch}/{path}"
+
             if match is None:
                 debug("Bad repository")
                 bad_repos.append(url)
@@ -84,9 +89,12 @@ def repo_scan(app):
 #  defining all of the cli parameters
 repo_scan.add_param("-v", "--verbose", help="enables print statements", default=False, action="store_true")
 repo_scan.add_param("-gc", "--good_case", help="show matched repos", default=False, action="store_true")
+repo_scan.add_param("-r", "--raw-api", help="set output to raw api url", default=False, action="store_true")
+
 repo_scan.add_param("-p", "--path", help="sets the file path to scan", default=".docker/build/Dockerfile", type=str)
 repo_scan.add_param("-s", "--search", help="regex string to match", default=r"FROM composer\:[0-9\.]+", type=str)
 repo_scan.add_param("-b", "--branch", help="set the repository branch", default="master", type=str)
+
 
 if __name__ == "__main__":
     repo_scan.run()
