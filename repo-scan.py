@@ -30,7 +30,9 @@ def repo_scan(app):
 
     def debug(*args):
         if verbose:
-            print(args)
+            for arg in args:
+                print(arg, end=" ")
+            print()
 
     load_dotenv()
     access_token = os.getenv("GIT_ACCESS_TOKEN")
